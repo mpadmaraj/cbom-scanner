@@ -1,32 +1,111 @@
 rules:
+  # ==== Hashes (weak/strong) ====
   - id: js-node-crypto-md5-sha1
     languages: [javascript, typescript]
     message: "Weak hash (MD5/SHA-1) via Node crypto"
     severity: WARNING
     patterns:
       - pattern-either:
-          - pattern: crypto.createHash('md5')
-          - pattern: crypto.createHash('sha1')
+          - pattern: "crypto.createHash('md5')"
+          - pattern: "crypto.createHash('sha1')"
 
-  - id: js-aes-ecb
+  - id: js-node-forge-sha2
+    languages: [javascript, typescript]
+    message: "SHA-256 / SHA-512 via node-forge"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "forge.md.sha256.create()"
+          - pattern: "forge.md.sha512.create()"
+
+  - id: js-webcrypto-sha2
+    languages: [javascript, typescript]
+    message: "SHA-256 / SHA-512 via WebCrypto"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "crypto.subtle.digest('SHA-256', ...)"
+          - pattern: "crypto.subtle.digest('SHA-512', ...)"
+          - pattern: "window.crypto.subtle.digest('SHA-256', ...)"
+          - pattern: "window.crypto.subtle.digest('SHA-512', ...)"
+
+  # ==== Symmetric (AES) ====
+  - id: js-node-crypto-ecb
     languages: [javascript, typescript]
     message: "AES-ECB used (insecure)"
     severity: ERROR
     patterns:
       - pattern-either:
-          - pattern: crypto.createCipheriv('aes-128-ecb', $KEY, null)
-          - pattern: crypto.createCipher('aes-128-ecb', $KEY)
+          - pattern: "crypto.createCipheriv('aes-128-ecb', $KEY, null)"
+          - pattern: "crypto.createCipher('aes-128-ecb', $KEY)"
 
   - id: js-cryptojs-ecb
     languages: [javascript, typescript]
     message: "CryptoJS AES ECB mode"
     severity: ERROR
     patterns:
-      - pattern: CryptoJS.AES.encrypt($D, $K, { mode: CryptoJS.mode.ECB })
+      - pattern: "CryptoJS.AES.encrypt($D, $K, { mode: CryptoJS.mode.ECB })"
 
-  - id: js-node-forge-ecb
+  - id: js-node-forge-aes-cbc
     languages: [javascript, typescript]
-    message: "node-forge AES ECB mode"
-    severity: ERROR
+    message: "AES-CBC used via node-forge"
+    severity: WARNING
     patterns:
-      - pattern: forge.cipher.createCipher('AES-ECB', $KEY)
+      - pattern-either:
+          - pattern: "forge.cipher.createCipher('AES-CBC', ...)"
+          - pattern: "forge.cipher.createDecipher('AES-CBC', ...)"
+
+  - id: js-node-forge-aes-gcm
+    languages: [javascript, typescript]
+    message: "AES-GCM used via node-forge"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "forge.cipher.createCipher('AES-GCM', ...)"
+          - pattern: "forge.cipher.createDecipher('AES-GCM', ...)"
+
+  # ==== RNG / IV / keys ====
+  - id: js-node-crypto-randombytes
+    languages: [javascript, typescript]
+    message: "Random bytes via Node crypto"
+    severity: INFO
+    patterns:
+      - pattern: "crypto.randomBytes(...)"
+
+  - id: js-node-forge-random
+    languages: [javascript, typescript]
+    message: "Random bytes via node-forge"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "forge.random.getBytesSync(...)"
+          - pattern: "forge.random.getBytes(...)"
+
+  # ==== RSA / OAEP ====
+  - id: js-node-crypto-public-encrypt
+    languages: [javascript, typescript]
+    message: "RSA publicEncrypt usage"
+    severity: INFO
+    patterns:
+      - pattern: "crypto.publicEncrypt(...)"
+
+  - id: js-rsa-oaep-config
+    languages: [javascript, typescript]
+    message: "RSA-OAEP configuration detected"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: '"RSA-OAEP"'
+          - pattern: '"RSA-OAEP-256"'
+          - pattern: "oaepHash: 'sha256'"
+          - pattern: 'oaepHash: "sha256"'
+
+  # ==== Helpers / misc ====
+  - id: js-generate-aes-128
+    languages: [javascript, typescript]
+    message: "AES-128 key generation"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "generateSecretKey('AES', 128, ...)"
+          - pattern: 'generateSecretKey("AES", 128, ...)'

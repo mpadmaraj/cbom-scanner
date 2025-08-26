@@ -1,4 +1,8 @@
 #!/bin/sh
+set -e
 WORKSPACE="${1:-/tmp/repo}"
-docker run --rm -v "$WORKSPACE":/src -v /app/scanner-scripts/rules:/rules returntocorp/semgrep   semgrep --config /rules --json --output /src/semgrep-out.json /src >/dev/null 2>&1
-cat "$WORKSPACE/semgrep-out.json" || echo "{}"
+semgrep --config /app/scanner-scripts/rules \
+--json --output "$WORKSPACE/semgrep-out.json" \
+--exclude node_modules --exclude dist --exclude build \
+"$WORKSPACE" >/dev/null 2>&1 || true
+cat "$WORKSPACE/semgrep-out.json" 2>/dev/null || echo "{}"

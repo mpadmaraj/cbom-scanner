@@ -1,5 +1,5 @@
 #!/bin/sh
+set -e
 WORKSPACE="${1:-/tmp/repo}"
-# Placeholder CLI: replace with actual cbomkit container/command
-docker run --rm -v "$WORKSPACE":/src cyclonedx/cyclonedx-cli:latest   cyclonedx create --type java --output-format json --output-file /src/cbomkit-out.json /src >/dev/null 2>&1
-cat "$WORKSPACE/cbomkit-out.json" || echo "{}"
+cyclonedx create --output-format json --output-file "$WORKSPACE/cbomkit-out.json" "$WORKSPACE" >/dev/null 2>&1 || true
+cat "$WORKSPACE/cbomkit-out.json" 2>/dev/null || echo "{}"

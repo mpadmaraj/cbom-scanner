@@ -23,7 +23,9 @@ public class ScanController {
     private final ReportService reportService;
 
     public ScanController(ScanJobRepository repo, JdbcTemplate jdbc, ReportService reportService) {
-        this.repo = repo; this.jdbc = jdbc; this.reportService = reportService;
+        this.repo = repo;
+        this.jdbc = jdbc;
+        this.reportService = reportService;
     }
 
     @PostMapping
@@ -31,7 +33,11 @@ public class ScanController {
         ScanJob job = new ScanJob();
         job.setId(UUID.randomUUID());
         job.setRepoUrl(req.repoUrl());
-        job.setRef(req.ref());
+        // Prefer branch; fallback to ref (tag/sha)
+        String resolvedRef = (req.branch() != null && !req.branch().isBlank())
+                ? req.branch()
+                : req.ref();
+
         job.setTool(req.tool() == null ? "semgrep" : req.tool());
         job.setStatus("QUEUED");
         job.setCreatedAt(Instant.now());
@@ -42,30 +48,31 @@ public class ScanController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> status(@PathVariable UUID id) {
+    public ResponseEntity<?> status(@PathVariable("id") UUID id) {
         Optional<ScanJob> job = repo.findById(id);
         return job.<ResponseEntity<?>>map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/json")
-    public ResponseEntity<String> mergedJson(@PathVariable UUID id) {
+    public ResponseEntity<String> mergedJson(@PathVariable("id") UUID id) {
         return repo.findById(id)
                 .map(job -> ResponseEntity.ok(reportService.buildMergedJson(job)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/report.pdf")
-    public ResponseEntity<byte[]> pdf(@PathVariable UUID id) {
+    public ResponseEntity<byte[]> pdf(@PathVariable("id") UUID id) {
         return repo.findById(id)
-            .map(job -> {
-                byte[] pdf = reportService.generatePdf(job);
-                return ResponseEntity.ok()
-                        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=scan-"+id+".pdf")
-                        .contentType(MediaType.APPLICATION_PDF)
-                        .body(pdf);
-            })
-            .orElse(ResponseEntity.notFound().build());
+                .map(job -> {
+                    byte[] pdf = reportService.generatePdf(job);
+                    return ResponseEntity.ok()
+                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=scan-" + id + ".pdf")
+                            .contentType(MediaType.APPLICATION_PDF)
+                            .body(pdf);
+                })
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    public record CreateScan(String repoUrl, String ref, String tool) {}
+    public record CreateScan(String repoUrl, String branch, String ref, String tool) {
+    }
 }

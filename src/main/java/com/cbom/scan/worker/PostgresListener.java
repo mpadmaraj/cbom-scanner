@@ -9,6 +9,8 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.UUID;
+import org.postgresql.PGConnection;
+import org.postgresql.PGNotification;
 
 @Component
 public class PostgresListener {
@@ -27,7 +29,7 @@ public class PostgresListener {
 
     private void loop() {
         try (Connection conn = dataSource.getConnection();
-             Statement st = conn.createStatement()) {
+                Statement st = conn.createStatement()) {
             conn.setAutoCommit(true);
             st.execute("LISTEN scan_jobs");
             PGConnection pg = conn.unwrap(PGConnection.class);
