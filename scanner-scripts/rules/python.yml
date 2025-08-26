@@ -1,0 +1,26 @@
+rules:
+  - id: py-hash-md5-sha1
+    languages: [python]
+    message: "Weak hash hashlib.md5/sha1"
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5($D)
+          - pattern: hashlib.sha1($D)
+
+  - id: py-cryptography-ecb
+    languages: [python]
+    message: "AES ECB mode with cryptography.io"
+    severity: ERROR
+    patterns:
+      - pattern: modes.ECB()
+
+  - id: py-random-for-crypto
+    languages: [python]
+    message: "random module used for crypto; use secrets/os.urandom"
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: random.random()
+          - pattern: random.randint(...)
+          - pattern: random.randrange(...)

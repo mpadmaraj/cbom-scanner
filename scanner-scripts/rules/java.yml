@@ -1,0 +1,36 @@
+rules:
+  - id: java-jca-md5-sha1
+    languages: [java]
+    message: "Weak hash algorithm (MD5 or SHA-1)"
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance("MD5")
+          - pattern: MessageDigest.getInstance("SHA-1")
+    metadata: { cwe: "328" }
+
+  - id: java-aes-ecb
+    languages: [java]
+    message: "AES in ECB mode is insecure"
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: Cipher.getInstance("AES/ECB")
+          - pattern: Cipher.getInstance("AES/ECB/$P")
+    metadata: { cwe: "327" }
+
+  - id: java-static-iv
+    languages: [java]
+    message: "Static IV detected; IVs must be random and unique"
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: 'IvParameterSpec("$IV".getBytes())'
+          - pattern: 'IvParameterSpec(new byte[] { ... })'
+
+  - id: java-sig-sha1withrsa
+    languages: [java]
+    message: "SHA1withRSA signature is deprecated"
+    severity: WARNING
+    patterns:
+      - pattern: 'Signature.getInstance("SHA1withRSA")'

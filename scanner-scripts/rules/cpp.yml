@@ -1,0 +1,18 @@
+rules:
+  - id: cpp-openssl-md5-sha1
+    languages: [cpp]
+    message: "OpenSSL MD5/SHA1 digest used"
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: EVP_md5()
+          - pattern: EVP_sha1()
+
+  - id: cpp-openssl-ecb
+    languages: [cpp]
+    message: "OpenSSL AES ECB mode"
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: EVP_aes_128_ecb()
+          - pattern: EVP_aes_256_ecb()

@@ -1,0 +1,32 @@
+rules:
+  - id: js-node-crypto-md5-sha1
+    languages: [javascript, typescript]
+    message: "Weak hash (MD5/SHA-1) via Node crypto"
+    severity: WARNING
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createHash('md5')
+          - pattern: crypto.createHash('sha1')
+
+  - id: js-aes-ecb
+    languages: [javascript, typescript]
+    message: "AES-ECB used (insecure)"
+    severity: ERROR
+    patterns:
+      - pattern-either:
+          - pattern: crypto.createCipheriv('aes-128-ecb', $KEY, null)
+          - pattern: crypto.createCipher('aes-128-ecb', $KEY)
+
+  - id: js-cryptojs-ecb
+    languages: [javascript, typescript]
+    message: "CryptoJS AES ECB mode"
+    severity: ERROR
+    patterns:
+      - pattern: CryptoJS.AES.encrypt($D, $K, { mode: CryptoJS.mode.ECB })
+
+  - id: js-node-forge-ecb
+    languages: [javascript, typescript]
+    message: "node-forge AES ECB mode"
+    severity: ERROR
+    patterns:
+      - pattern: forge.cipher.createCipher('AES-ECB', $KEY)
