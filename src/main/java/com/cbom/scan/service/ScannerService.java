@@ -1,11 +1,5 @@
 package com.cbom.scan.service;
 
-import com.cbom.scan.model.ScanJob;
-import com.cbom.scan.repo.ScanJobRepository;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Service;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
@@ -13,6 +7,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.cbom.scan.repo.ScanJobRepository;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ScannerService {
