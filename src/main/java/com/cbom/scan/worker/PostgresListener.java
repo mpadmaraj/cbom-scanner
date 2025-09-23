@@ -8,30 +8,25 @@ import javax.sql.DataSource;
 
 import org.postgresql.PGConnection;
 import org.postgresql.PGNotification;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 import com.cbom.scan.service.ScannerService;
-
 import jakarta.annotation.PostConstruct;
 
 @Component
 public class PostgresListener {
+
     private final DataSource dataSource;
     private final ScannerService scannerService;
-    private final TaskExecutor taskExecutor;
 
-    public PostgresListener(DataSource dataSource, ScannerService scannerService, TaskExecutor taskExecutor) {
+    public PostgresListener(DataSource dataSource, ScannerService scannerService) {
         this.dataSource = dataSource;
         this.scannerService = scannerService;
-        this.taskExecutor = taskExecutor;
     }
 
     @PostConstruct
     public void start() {
-        taskExecutor.execute(this::loop);
-    }
-
+        new Thread(this::loop, "pg-listener").start();
     }
 
     private void loop() {
