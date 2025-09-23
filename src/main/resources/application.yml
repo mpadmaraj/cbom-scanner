@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://ep-mute-bar-a1cbyuz2-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-    username: ${db_username}
-    password: ${db_password}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
