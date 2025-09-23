@@ -58,13 +58,14 @@ public class ScannerService {
             if (!"cbomkit".equalsIgnoreCase(job.getTool())) {
                 String semOut = runScript("/app/scanner-scripts/run-semgrep.sh", workspace.toString());
                 job.setSemgrepOutput(semOut);
+                // Build a compliant CBOM from Semgrep results
                 try {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode sem = mapper.readTree(semOut);
-                    String cbomFromSemgrep = new CbomBuilder().fromSemgrep(job.getRepoUrl(), sem);
-                    job.setCbomkitOutput(cbomFromSemgrep);
+                    String cbom = new CbomBuilder().fromSemgrep(job.getRepoUrl(), job.getRef(), sem);
+                    job.setCbomkitOutput(cbom);
                 } catch (Exception e) {
-                    // keep going; leave cbomkitOutput as-is if transform fails
+                    // leave cbomkitOutput as-is if transform fails
                 }
             }
             if (!"semgrep".equalsIgnoreCase(job.getTool())) {

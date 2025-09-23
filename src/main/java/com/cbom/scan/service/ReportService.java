@@ -14,11 +14,11 @@ public class ReportService {
 
     public String buildMergedJson(ScanJob job) {
         try {
-            ObjectNode root = mapper.createObjectNode();
+            var root = mapper.createObjectNode();
             if (job.getSemgrepOutput() != null)
                 root.set("semgrep", mapper.readTree(job.getSemgrepOutput()));
             if (job.getCbomkitOutput() != null)
-                root.set("cbomkit", mapper.readTree(job.getCbomkitOutput()));
+                root.set("cbom", mapper.readTree(job.getCbomkitOutput())); // <-- rename to cbom
             root.put("pqc_score", job.getPqcScore() == null ? 0 : job.getPqcScore());
             return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
         } catch (Exception e) {

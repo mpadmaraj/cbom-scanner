@@ -37,7 +37,7 @@ public class ScanController {
         String resolvedRef = (req.branch() != null && !req.branch().isBlank())
                 ? req.branch()
                 : req.ref();
-
+        job.setRef(resolvedRef);
         job.setTool(req.tool() == null ? "semgrep" : req.tool());
         job.setStatus("QUEUED");
         job.setCreatedAt(Instant.now());
@@ -75,4 +75,20 @@ public class ScanController {
 
     public record CreateScan(String repoUrl, String branch, String ref, String tool) {
     }
+
+    @GetMapping("/{id}/cbom")
+    public ResponseEntity<?> cbom(@PathVariable("id") UUID id) {
+        return repo.findById(id)
+                .map(job -> {
+                    String cbom = job.getCbomkitOutput();
+                    if (cbom == null || cbom.isBlank()) {
+                        return ResponseEntity.noContent().build(); // 204
+                    }
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(cbom);
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
 }
