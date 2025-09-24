@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.cbom.scan.repo.ScanJobRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.scheduling.annotation.Async;
 
 @Service
 public class ScannerService {
@@ -22,8 +23,10 @@ public class ScannerService {
         this.repo = repo;
     }
 
+    @Async
     public void run(UUID jobId) {
         var job = repo.findById(jobId).orElseThrow();
+        System.out.println("[Scanner] Running job: " + jobId);
         try {
             job.setStatus("RUNNING");
             repo.save(job);
@@ -32,6 +35,7 @@ public class ScannerService {
             String ref = job.getRef();
 
             try {
+                System.out.println("[Scanner] Cloning " + job.getRepoUrl() + " (ref=" + ref + ") to " + workspace);
                 if (ref != null && !ref.isBlank()) {
                     // Try cloning a specific branch/tag with shallow history
                     exec(new String[] { "git", "clone", "--depth", "1", "--branch", ref, job.getRepoUrl(),
@@ -56,6 +60,7 @@ public class ScannerService {
             // workspace.toString() });
 
             if (!"cbomkit".equalsIgnoreCase(job.getTool())) {
+                System.out.println("[Scanner] Running Semgrep scan...");
                 String semOut = runScript("/app/scanner-scripts/run-semgrep.sh", workspace.toString());
                 job.setSemgrepOutput(semOut);
                 // Build a compliant CBOM from Semgrep results
@@ -69,6 +74,7 @@ public class ScannerService {
                 }
             }
             if (!"semgrep".equalsIgnoreCase(job.getTool())) {
+                System.out.println("[Scanner] Running CBOMKit scan...");
                 String cbomOut = runScript("/app/scanner-scripts/run-cbomkit.sh", workspace.toString());
                 job.setCbomkitOutput(cbomOut);
             }
@@ -88,6 +94,7 @@ public class ScannerService {
             job.setStatus("COMPLETED");
             job.setUpdatedAt(Instant.now());
             repo.save(job);
+            System.out.println("[Scanner] Job completed: " + jobId);
         } catch (Exception e) {
             job.setStatus("FAILED");
             job.setErrorMessage(e.getMessage());

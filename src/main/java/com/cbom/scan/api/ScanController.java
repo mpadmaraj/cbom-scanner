@@ -3,6 +3,8 @@ package com.cbom.scan.api;
 import com.cbom.scan.model.ScanJob;
 import com.cbom.scan.repo.ScanJobRepository;
 import com.cbom.scan.service.ReportService;
+import com.cbom.scan.service.ScannerService;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,11 +23,13 @@ public class ScanController {
     private final ScanJobRepository repo;
     private final JdbcTemplate jdbc;
     private final ReportService reportService;
+    private final ScannerService scannerService;
 
-    public ScanController(ScanJobRepository repo, JdbcTemplate jdbc, ReportService reportService) {
+    public ScanController(ScanJobRepository repo, JdbcTemplate jdbc, ReportService reportService, ScannerService scannerService) {
         this.repo = repo;
         this.jdbc = jdbc;
         this.reportService = reportService;
+        this.scannerService = scannerService;
     }
 
     @PostMapping
@@ -43,7 +47,11 @@ public class ScanController {
         job.setCreatedAt(Instant.now());
         job.setUpdatedAt(Instant.now());
         repo.save(job);
-        jdbc.execute(String.format("SELECT pg_notify('scan_jobs','%s')", job.getId().toString()));
+        
+        //Inline worker. comment if worker is run as separate service
+        scannerService.run(job.getId());
+
+        //jdbc.execute(String.format("SELECT pg_notify('scan_jobs','%s')", job.getId().toString()));
         return ResponseEntity.accepted().body(Map.of("id", job.getId(), "status", job.getStatus()));
     }
 

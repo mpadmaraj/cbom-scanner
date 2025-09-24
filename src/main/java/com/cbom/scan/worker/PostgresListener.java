@@ -24,7 +24,7 @@ public class PostgresListener {
         this.scannerService = scannerService;
     }
 
-    @PostConstruct
+    //@PostConstruct
     public void start() {
         new Thread(this::loop, "pg-listener").start();
     }
