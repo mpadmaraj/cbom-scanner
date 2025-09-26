@@ -8,12 +8,81 @@ rules:
           - pattern: hashlib.md5($D)
           - pattern: hashlib.sha1($D)
 
+  - id: py-hash-sha512
+    languages: [python]
+    message: "SHA512 hash usage"
+    severity: INFO
+    patterns:
+      - pattern: hashlib.sha512($D)
+
+  - id: py-hash-shake256
+    languages: [python]
+    message: "SHAKE256 hash usage"
+    severity: INFO
+    patterns:
+      - pattern: hashlib.shake_256($D)
+
   - id: py-cryptography-ecb
     languages: [python]
     message: "AES ECB mode with cryptography.io"
     severity: ERROR
     patterns:
       - pattern: modes.ECB()
+
+  - id: py-ed25519-keygen
+    languages: [python]
+    message: "Ed25519 key generation"
+    severity: INFO
+    patterns:
+      - pattern: Ed25519PrivateKey.generate()
+
+  - id: py-ed448-keygen
+    languages: [python]
+    message: "Ed448 key generation"
+    severity: INFO
+    patterns:
+      - pattern: Ed448PrivateKey.generate()
+
+  - id: py-x25519-keygen
+    languages: [python]
+    message: "x25519 key generation"
+    severity: INFO
+    patterns:
+      - pattern: X25519PrivateKey.generate()
+
+  - id: py-x448-keygen
+    languages: [python]
+    message: "x448 key generation"
+    severity: INFO
+    patterns:
+      - pattern: X448PrivateKey.generate()
+
+  - id: py-private-key
+    languages: [python]
+    message: "Private key usage"
+    severity: INFO
+    patterns:
+      - pattern: private_key = $FUNC.generate()
+
+  - id: py-curve-usage
+    languages: [python]
+    message: "Curve usage (Curve25519, Curve448, Edwards25519, Edwards448)"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: Curve25519
+          - pattern: Curve448
+          - pattern: Edwards25519
+          - pattern: Edwards448
+
+  - id: py-signature-primitive
+    languages: [python]
+    message: "Signature primitive usage"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: $KEY.sign($DATA)
+          - pattern: $KEY.verify($SIG, $DATA)
 
   - id: py-random-for-crypto
     languages: [python]
@@ -24,3 +93,21 @@ rules:
           - pattern: random.random()
           - pattern: random.randint(...)
           - pattern: random.randrange(...)
+
+  - id: py-private-key-string
+    languages: [python]
+    message: "Private key string usage"
+    severity: INFO
+    patterns:
+      - pattern: '"private-key"'
+
+  - id: py-curve-string
+    languages: [python]
+    message: "Curve name usage"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: '"Edwards25519"'
+          - pattern: '"Edwards448"'
+          - pattern: '"Curve25519"'
+          - pattern: '"Curve448"'

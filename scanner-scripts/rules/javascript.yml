@@ -9,6 +9,15 @@ rules:
           - pattern: "crypto.createHash('md5')"
           - pattern: "crypto.createHash('sha1')"
 
+  - id: js-node-crypto-sha256-sha512
+    languages: [javascript, typescript]
+    message: "SHA-256/SHA-512 via Node crypto"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: "crypto.createHash('sha256')"
+          - pattern: "crypto.createHash('sha512')"
+
   - id: js-node-forge-sha2
     languages: [javascript, typescript]
     message: "SHA-256 / SHA-512 via node-forge"

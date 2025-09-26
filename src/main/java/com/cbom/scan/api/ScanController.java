@@ -25,7 +25,8 @@ public class ScanController {
     private final ReportService reportService;
     private final ScannerService scannerService;
 
-    public ScanController(ScanJobRepository repo, JdbcTemplate jdbc, ReportService reportService, ScannerService scannerService) {
+    public ScanController(ScanJobRepository repo, JdbcTemplate jdbc, ReportService reportService,
+            ScannerService scannerService) {
         this.repo = repo;
         this.jdbc = jdbc;
         this.reportService = reportService;
@@ -47,11 +48,19 @@ public class ScanController {
         job.setCreatedAt(Instant.now());
         job.setUpdatedAt(Instant.now());
         repo.save(job);
-        
-        //Inline worker. comment if worker is run as separate service
-        scannerService.run(job.getId());
 
-        //jdbc.execute(String.format("SELECT pg_notify('scan_jobs','%s')", job.getId().toString()));
+        // Inline worker. comment if worker is run as separate service
+        new Thread(() -> {
+            try {
+                scannerService.run(job.getId());
+            } catch (Exception e) {
+                // Optionally log the error
+                e.printStackTrace();
+            }
+        }).start();
+
+        // jdbc.execute(String.format("SELECT pg_notify('scan_jobs','%s')",
+        // job.getId().toString()));
         return ResponseEntity.accepted().body(Map.of("id", job.getId(), "status", job.getStatus()));
     }
 

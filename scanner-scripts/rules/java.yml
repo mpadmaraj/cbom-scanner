@@ -9,6 +9,15 @@ rules:
           - pattern: MessageDigest.getInstance("SHA-1")
     metadata: { cwe: "328" }
 
+  - id: java-jca-sha256-sha512
+    languages: [java]
+    message: "SHA-256/SHA-512 hash algorithm"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: MessageDigest.getInstance("SHA-256")
+          - pattern: MessageDigest.getInstance("SHA-512")
+
   - id: java-aes-ecb
     languages: [java]
     message: "AES in ECB mode is insecure"
@@ -28,9 +37,9 @@ rules:
           - pattern: 'IvParameterSpec("$IV".getBytes())'
           - pattern: 'IvParameterSpec(new byte[] { ... })'
 
-  - id: java-sig-sha1withrsa
+  - id: java-keygen
     languages: [java]
-    message: "SHA1withRSA signature is deprecated"
-    severity: WARNING
+    message: "KeyPairGenerator usage"
+    severity: INFO
     patterns:
-      - pattern: 'Signature.getInstance("SHA1withRSA")'
+      - pattern: KeyPairGenerator.getInstance($ALG)

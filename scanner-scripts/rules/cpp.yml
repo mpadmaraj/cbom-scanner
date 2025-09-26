@@ -8,6 +8,15 @@ rules:
           - pattern: EVP_md5()
           - pattern: EVP_sha1()
 
+  - id: cpp-openssl-sha256-sha512
+    languages: [cpp]
+    message: "OpenSSL SHA256/SHA512 digest used"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: EVP_sha256()
+          - pattern: EVP_sha512()
+
   - id: cpp-openssl-ecb
     languages: [cpp]
     message: "OpenSSL AES ECB mode"
@@ -16,3 +25,14 @@ rules:
       - pattern-either:
           - pattern: EVP_aes_128_ecb()
           - pattern: EVP_aes_256_ecb()
+
+  - id: cpp-openssl-keygen
+    languages: [cpp]
+    message: "OpenSSL key generation"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: EVP_PKEY_keygen(...)
+          - pattern: EVP_PKEY_CTX_new_id(...)
+          - pattern: EVP_PKEY_assign_RSA(...)
+          - pattern: EVP_PKEY_assign_EC_KEY(...)

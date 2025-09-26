@@ -1,13 +1,20 @@
 package com.cbom.scan.service;
 
+import com.cbom.scan.model.ScanJob;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 
+import java.io.File;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.yaml.snakeyaml.Yaml;
 
 /**
  * Build a CycloneDX 1.6 CBOM (JSON) from Semgrep results.
@@ -24,7 +31,7 @@ import java.util.regex.Pattern;
 public class CbomBuilder {
   private static final ObjectMapper M = new ObjectMapper();
 
-  public String fromSemgrep(String repoUrl, String ref, JsonNode semgrepJson) {
+  public String fromSemgrep(ScanJob job, JsonNode semgrepJson, String semgrepConfig) {
     ObjectNode bom = M.createObjectNode();
     bom.put("bomFormat", "CycloneDX");
     bom.put("specVersion", "1.6");
@@ -33,18 +40,40 @@ public class CbomBuilder {
     // --- metadata
     ObjectNode metadata = bom.putObject("metadata");
     metadata.put("timestamp", Instant.now().toString());
-    if (repoUrl != null) {
-      metadata.put("supplier", repoUrl);
+    if (job != null && job.getRepoUrl() != null) {
+      metadata.put("supplier", job.getRepoUrl());
     }
     ArrayNode tools = metadata.putArray("tools");
     ObjectNode t = tools.addObject();
     t.put("vendor", "Semgrep");
     t.put("name", "Semgrep");
-    // you can enrich with version if you like: t.put("version", "...");
 
     ArrayNode properties = metadata.putArray("properties");
-    addProp(properties, "repoUrl", nvl(repoUrl, ""));
-    addProp(properties, "ref", nvl(ref, ""));
+    addProp(properties, "repoUrl", job != null ? nvl(job.getRepoUrl(), "") : "");
+    addProp(properties, "ref", job != null ? nvl(job.getRef(), "") : "");
+    addProp(properties, "semgrepConfig", nvl(semgrepConfig, ""));
+
+    // --- Load Semgrep config YAML for rule metadata enrichment ---
+    Map<String, Map<String, Object>> ruleMeta = new HashMap<>();
+    try {
+      File yamlFile = new File(semgrepConfig);
+      if (yamlFile.exists()) {
+        Yaml yaml = new Yaml();
+        Map<String, Object> yamlObj = yaml.load(new java.io.FileInputStream(yamlFile));
+        if (yamlObj != null && yamlObj.containsKey("rules")) {
+          List<?> rules = (List<?>) yamlObj.get("rules");
+          for (Object ruleObj : rules) {
+            if (ruleObj instanceof Map) {
+              Map<String, Object> rule = (Map<String, Object>) ruleObj;
+              String id = rule.getOrDefault("id", "").toString();
+              ruleMeta.put(id, rule);
+            }
+          }
+        }
+      }
+    } catch (Exception e) {
+      // ignore YAML errors, fallback to Semgrep results only
+    }
 
     // --- components (cryptographic-asset)
     ArrayNode components = bom.putArray("components");
@@ -101,6 +130,26 @@ public class CbomBuilder {
         addProp(cprops, "language", nvl(lang, ""));
         addProp(cprops, "detectionMethod", "static-analysis");
         addProp(cprops, "ruleId", ruleId);
+
+        // --- Enrich with rule metadata from YAML config ---
+        if (ruleMeta.containsKey(ruleId)) {
+          Map<String, Object> meta = ruleMeta.get(ruleId);
+          if (meta.containsKey("severity")) {
+            addProp(cprops, "severity", meta.get("severity").toString());
+          }
+          if (meta.containsKey("message")) {
+            addProp(cprops, "message", meta.get("message").toString());
+          }
+          if (meta.containsKey("patterns")) {
+            addProp(cprops, "patterns", meta.get("patterns").toString());
+          }
+          if (meta.containsKey("languages")) {
+            addProp(cprops, "languages", meta.get("languages").toString());
+          }
+          if (meta.containsKey("id")) {
+            addProp(cprops, "ruleConfigId", meta.get("id").toString());
+          }
+        }
       }
     }
 

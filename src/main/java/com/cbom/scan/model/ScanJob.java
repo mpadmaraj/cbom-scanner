@@ -1,11 +1,15 @@
 package com.cbom.scan.model;
 
-import jakarta.persistence.*;
-import org.hibernate.annotations.Type;
 import java.time.Instant;
 import java.util.UUID;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "scan_job")
@@ -33,6 +37,7 @@ public class ScanJob {
 
     private Integer pqcScore;
     private String errorMessage;
+    private String detectedLanguage;
 
     // getters/setters
     public UUID getId() {
@@ -121,5 +126,13 @@ public class ScanJob {
 
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
+    }
+
+    public String getDetectedLanguage() {
+        return detectedLanguage;
+    }
+
+    public void setDetectedLanguage(String detectedLanguage) {
+        this.detectedLanguage = detectedLanguage;
     }
 }
