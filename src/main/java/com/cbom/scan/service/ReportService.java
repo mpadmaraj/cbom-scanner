@@ -1,12 +1,12 @@
 package com.cbom.scan.service;
 
-import com.cbom.scan.model.ScanJob;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
+import java.io.ByteArrayOutputStream;
+
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
+import com.cbom.scan.model.ScanJob;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 
 @Service
 public class ReportService {
@@ -24,6 +24,14 @@ public class ReportService {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public String buildCbomJson(ScanJob job) {
+        String cbom = job.getCbomkitOutput();
+        if (cbom == null || cbom.isBlank()) {
+            return "";
+        }
+        return cbom;
     }
 
     public byte[] generatePdf(ScanJob job) {

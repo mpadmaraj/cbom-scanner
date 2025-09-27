@@ -1,10 +1,5 @@
 package com.cbom.scan.service;
 
-import com.cbom.scan.model.ScanJob;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.*;
-
 import java.io.File;
 import java.time.Instant;
 import java.util.HashMap;
@@ -15,6 +10,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.yaml.snakeyaml.Yaml;
+
+import com.cbom.scan.model.ScanJob;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * Build a CycloneDX 1.6 CBOM (JSON) from Semgrep results.

@@ -1,20 +1,25 @@
 package com.cbom.scan.api;
 
-import com.cbom.scan.model.ScanJob;
-import com.cbom.scan.repo.ScanJobRepository;
-import com.cbom.scan.service.ReportService;
-import com.cbom.scan.service.ScannerService;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Instant;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import com.cbom.scan.model.ScanJob;
+import com.cbom.scan.repo.ScanJobRepository;
+import com.cbom.scan.service.ReportService;
+import com.cbom.scan.service.ScannerService;
 
 @RestController
 @RequestMapping("/api/v1/scans")
@@ -74,6 +79,21 @@ public class ScanController {
     public ResponseEntity<String> mergedJson(@PathVariable("id") UUID id) {
         return repo.findById(id)
                 .map(job -> ResponseEntity.ok(reportService.buildMergedJson(job)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/cbom/json")
+    public ResponseEntity<String> cbomJson(@PathVariable("id") UUID id) {
+        return repo.findById(id)
+                .map(job -> {
+                    String cbom = reportService.buildCbomJson(job);
+                    if (cbom == null || cbom.isBlank()) {
+                        return ResponseEntity.noContent().<String>build();
+                    }
+                    return ResponseEntity.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(cbom);
+                })
                 .orElse(ResponseEntity.notFound().build());
     }
 
