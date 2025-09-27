@@ -30,9 +30,18 @@ case "$LANG" in
         ;;
 esac
 
+
+# Print the semgrep command for debugging
+echo "semgrep --config \"$RULES\" --json  $EXCLUDES \"$WORKSPACE\"\n" 
+#echo "Semgrep is:"
+#which semgrep
+#chmod +x $(which semgrep)
+#semgrep --version
+#cat $RULES
+#ls -l $WORKSPACE
 semgrep --config "$RULES" \
     --json --output "$WORKSPACE/semgrep-out.json" \
     $EXCLUDES \
-    "$WORKSPACE" >/dev/null 2>&1 || true
+    "$WORKSPACE" --verbose >/dev/null 2>&1 || true
 
-cat "$WORKSPACE/semgrep-out.json" 2>/dev/null || echo "{}"
+#cat "$WORKSPACE/semgrep-out.json" 2>/dev/null || echo "{}"

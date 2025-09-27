@@ -1,0 +1,36 @@
+{
+    "version": 1,
+    "metadata": {
+        "tools": [
+            {
+                "name": "Semgrep",
+                "vendor": "Semgrep"
+            }
+        ],
+        "supplier": "https://github.com/spring-projects/spring-security.git",
+        "timestamp": "2025-09-27T16:15:25.608238974Z",
+        "properties": [
+            {
+                "name": "repoUrl",
+                "value": "https://github.com/spring-projects/spring-security.git"
+            },
+            {
+                "name": "ref",
+                "value": "main"
+            },
+            {
+                "name": "semgrepConfig",
+                "value": "/workspaces/cbom-scanner/scanner-scripts/rules/java.yml"
+            },
+            {
+                "name": "cbomVersion",
+                "value": "1.6"
+            }
+        ]
+    },
+    "bomFormat": "CycloneDX",
+    "specVersion": "1.6",
+    "components": [
+        // ...existing cryptographic-asset components from your sample...
+    ]
+}

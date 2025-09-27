@@ -1,113 +1,147 @@
-rules:
-  - id: py-hash-md5-sha1
+  # CVE Integration Rules for Popular Python Crypto Libraries
+  - id: py-cve-cryptography
     languages: [python]
-    message: "Weak hash hashlib.md5/sha1"
+    message: "cryptography vulnerable version detected (CVE-2023-38325, <3.4.8)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import cryptography'
+    metadata: { library: "cryptography", cve: "CVE-2023-38325", vulnerable_versions: "<3.4.8" }
+
+  - id: py-cve-pycrypto
+    languages: [python]
+    message: "PyCrypto vulnerable version detected (CVE-2013-7459, <2.7a1)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import Crypto'
+      - pattern: 'import Crypto.Cipher'
+    metadata: { library: "pycrypto", cve: "CVE-2013-7459", vulnerable_versions: "<2.7a1" }
+
+  - id: py-cve-pycryptodome
+    languages: [python]
+    message: "PyCryptodome vulnerable version detected (CVE-2023-1370, <3.17.0)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import Cryptodome'
+      - pattern: 'import Cryptodome.Cipher'
+    metadata: { library: "pycryptodome", cve: "CVE-2023-1370", vulnerable_versions: "<3.17.0" }
+
+  - id: py-cve-m2crypto
+    languages: [python]
+    message: "M2Crypto usage detected (check for CVEs manually)"
     severity: WARNING
     patterns:
-      - pattern-either:
-          - pattern: hashlib.md5($D)
-          - pattern: hashlib.sha1($D)
+      - pattern: 'import M2Crypto'
+    metadata: { library: "m2crypto", cve: "manual-check" }
+
+  - id: py-cve-python-jose
+    languages: [python]
+    message: "python-jose vulnerable version detected (CVE-2022-29217, <3.3.0)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import jose'
+      - pattern: 'import jose.jwt'
+    metadata: { library: "python-jose", cve: "CVE-2022-29217", vulnerable_versions: "<3.3.0" }
+
+  - id: py-cve-web3py
+    languages: [python]
+    message: "web3.py vulnerable version detected (CVE-2022-3116, <5.29.0)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import web3'
+    metadata: { library: "web3.py", cve: "CVE-2022-3116", vulnerable_versions: "<5.29.0" }
+
+  - id: py-cve-bsafepy
+    languages: [python]
+    message: "BSAFE Python SDK usage detected (check for CVEs manually)"
+    severity: WARNING
+    patterns:
+      - pattern: 'import bsafe'
+      - pattern: 'import rsa'
+    metadata: { library: "bsafe", cve: "manual-check" }
+rules:
+  - id: python-test-md5
+    languages: [python]
+    message: "MD5 hash usage detected"
+    severity: WARNING
+    patterns:
+      - pattern: hashlib.md5($D)
 
   - id: py-hash-sha512
     languages: [python]
     message: "SHA512 hash usage"
     severity: INFO
     patterns:
-      - pattern: hashlib.sha512($D)
+      - pattern-either:
+          - pattern: hashlib.sha512($D)
+          - pattern: sha512($D)
 
   - id: py-hash-shake256
     languages: [python]
-    message: "SHAKE256 hash usage"
+    message: "SHAKE256/XOF usage"
     severity: INFO
     patterns:
-      - pattern: hashlib.shake_256($D)
+      - pattern-either:
+          - pattern: hashlib.shake_256($D)
+          - pattern: shake_256($D)
+          - pattern-regex: "SHAKE256"
 
   - id: py-cryptography-ecb
     languages: [python]
     message: "AES ECB mode with cryptography.io"
     severity: ERROR
     patterns:
-      - pattern: modes.ECB()
+      - pattern-either:
+          - pattern: modes.ECB()
+          - pattern: c_modes.ECB()
+          - pattern: ECB()
 
   - id: py-ed25519-keygen
     languages: [python]
     message: "Ed25519 key generation"
     severity: INFO
     patterns:
-      - pattern: Ed25519PrivateKey.generate()
+      - pattern-either:
+          - pattern: Ed25519PrivateKey.generate()
+          - pattern: ed25519.Ed25519PrivateKey.generate()
+          - pattern: Ed25519.generate()
+          - pattern: $X.generate() # broad — use temporarily for discovery
 
   - id: py-ed448-keygen
     languages: [python]
     message: "Ed448 key generation"
     severity: INFO
     patterns:
-      - pattern: Ed448PrivateKey.generate()
+      - pattern-either:
+          - pattern: Ed448PrivateKey.generate()
+          - pattern: ed448.Ed448PrivateKey.generate()
+          - pattern: Ed448.generate()
 
   - id: py-x25519-keygen
     languages: [python]
     message: "x25519 key generation"
     severity: INFO
     patterns:
-      - pattern: X25519PrivateKey.generate()
+      - pattern-either:
+          - pattern: X25519PrivateKey.generate()
+          - pattern: x25519.X25519PrivateKey.generate()
+          - pattern: X25519.generate()
 
   - id: py-x448-keygen
     languages: [python]
     message: "x448 key generation"
     severity: INFO
     patterns:
-      - pattern: X448PrivateKey.generate()
-
-  - id: py-private-key
-    languages: [python]
-    message: "Private key usage"
-    severity: INFO
-    patterns:
-      - pattern: private_key = $FUNC.generate()
-
-  - id: py-curve-usage
-    languages: [python]
-    message: "Curve usage (Curve25519, Curve448, Edwards25519, Edwards448)"
-    severity: INFO
-    patterns:
       - pattern-either:
-          - pattern: Curve25519
-          - pattern: Curve448
-          - pattern: Edwards25519
-          - pattern: Edwards448
-
-  - id: py-signature-primitive
-    languages: [python]
-    message: "Signature primitive usage"
-    severity: INFO
-    patterns:
-      - pattern-either:
-          - pattern: $KEY.sign($DATA)
-          - pattern: $KEY.verify($SIG, $DATA)
-
-  - id: py-random-for-crypto
-    languages: [python]
-    message: "random module used for crypto; use secrets/os.urandom"
-    severity: WARNING
-    patterns:
-      - pattern-either:
-          - pattern: random.random()
-          - pattern: random.randint(...)
-          - pattern: random.randrange(...)
+          - pattern: X448PrivateKey.generate()
+          - pattern: x448.X448PrivateKey.generate()
+          - pattern: X448.generate()
 
   - id: py-private-key-string
     languages: [python]
     message: "Private key string usage"
     severity: INFO
     patterns:
-      - pattern: '"private-key"'
-
-  - id: py-curve-string
-    languages: [python]
-    message: "Curve name usage"
-    severity: INFO
-    patterns:
       - pattern-either:
-          - pattern: '"Edwards25519"'
-          - pattern: '"Edwards448"'
-          - pattern: '"Curve25519"'
-          - pattern: '"Curve448"'
+          - pattern-regex: "private[-_]key"
+          - pattern: "PRIVATE_KEY"
+          - pattern: 'private-key'

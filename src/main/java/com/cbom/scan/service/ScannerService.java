@@ -49,6 +49,12 @@ public class ScannerService {
                 } else {
                     exec(new String[] { "git", "clone", "--depth", "1", job.getRepoUrl(), workspace.toString() });
                 }
+                File repoDir = workspace.toFile();
+                if (repoDir.exists() && repoDir.isDirectory() && repoDir.list().length > 0) {
+                    log.info("[Scanner] Repo cloned successfully to {}", workspace);
+                } else {
+                    log.error("[Scanner] Repo clone failed or directory is empty: {}", workspace);
+                }
             } catch (Exception cloneEx) {
                 // Fallback: clone default branch, then checkout ref (works for commit SHA too)
                 exec(new String[] { "git", "clone", "--depth", "1", job.getRepoUrl(), workspace.toString() });
@@ -133,7 +139,7 @@ public class ScannerService {
             // if (!"cbomkit".equalsIgnoreCase(job.getTool())) {
             log.info("[Scanner] Running Semgrep scan...");
             String lang = job.getDetectedLanguage() != null ? job.getDetectedLanguage().toLowerCase() : "generic";
-            String semgrepConfig = "/app/scanner-scripts/rules/" + lang + ".yml";
+            String semgrepConfig = System.getProperty("user.dir") + "/scanner-scripts/rules/" + lang + ".yml";
             String semgrepScript = System.getProperty("user.dir") + "/scanner-scripts/run-semgrep.sh";
             String semOut = runScript(semgrepScript, workspace.toString(), semgrepConfig, lang);
             job.setSemgrepOutput(semOut);
@@ -179,7 +185,7 @@ public class ScannerService {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 if (job.getCbomkitOutput() != null && !job.getCbomkitOutput().isBlank()) {
-                    log.info("cbomkitOutput before save: {}", job.getCbomkitOutput());
+                    // log.info("cbomkitOutput before save: {}", job.getCbomkitOutput());
                     mapper.readTree(job.getCbomkitOutput());
                 }
             } catch (Exception jsonEx) {
@@ -190,7 +196,7 @@ public class ScannerService {
             try {
                 ObjectMapper mapper = new ObjectMapper();
                 if (job.getSemgrepOutput() != null && !job.getSemgrepOutput().isBlank()) {
-                    log.info("semgrepOutput before save: {}", job.getSemgrepOutput());
+                    // log.info("semgrepOutput before save: {}", job.getSemgrepOutput());
                     mapper.readTree(job.getSemgrepOutput());
                 }
             } catch (Exception jsonEx) {
@@ -241,21 +247,41 @@ public class ScannerService {
         pb.directory(new File(System.getProperty("user.dir")));
         pb.redirectErrorStream(true);
         Process p = pb.start();
-        StringBuilder sb = new StringBuilder();
+        // Capture console output
+        StringBuilder consoleOutput = new StringBuilder();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null)
-                sb.append(line).append("\n");
+                consoleOutput.append(line).append("\n");
         }
         int rc = p.waitFor();
         log.info("Return code: {}", rc);
-        log.info("Script output:\n{}", sb.toString());
+        // System.out.println("[Scanner] Script console output:\n" +
+        // consoleOutput.toString());
+        // Determine workspace path from args
+        String workspacePath = (args != null && args.length > 0) ? args[0] : null;
+        String semgrepOutPath = null;
+        if (workspacePath != null) {
+            semgrepOutPath = workspacePath + "/semgrep-out.json";
+        }
+        String result = null;
+        if (semgrepOutPath != null && new File(semgrepOutPath).exists()) {
+            result = new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(semgrepOutPath)));
+        } /*
+           * else {
+           * // fallback: use console output
+           * result = consoleOutput.toString();
+           * }
+           */
+        // log.info("Script output:\n{}", result);
+        // System.out.println("[Scanner] Semgrep JSON output:\n" + result);
         if (rc != 0) {
-            log.error("[Scanner] Job failed: {}: Script failed: {}\nOutput:\n{}", args.length > 0 ? args[0] : "",
-                    scriptPath, sb.toString());
+            log.error("[Scanner] Job failed: {}: Script failed: {}\nOutput:\n{}",
+                    args != null && args.length > 0 ? args[0] : "",
+                    scriptPath, result);
             throw new RuntimeException("Script failed: " + scriptPath);
         }
-        return sb.toString();
+        return result;
     }
 
     private void exec(String[] cmd) throws Exception {

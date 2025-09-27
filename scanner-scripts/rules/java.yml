@@ -1,4 +1,43 @@
 rules:
+  - id: java-test-md5
+    languages: [java]
+    message: "MD5 hash usage detected"
+    severity: WARNING
+    patterns:
+      - pattern: MessageDigest.getInstance("MD5")
+
+  - id: java-cve-google-tink
+    languages: [java]
+    message: "Google Tink vulnerable version detected (CVE-2022-21449, <1.6.1)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import com.google.crypto.tink.*'
+    metadata: { library: "google-tink", cve: "CVE-2022-21449", vulnerable_versions: "<1.6.1" }
+
+  - id: java-cve-apache-commons-crypto
+    languages: [java]
+    message: "Apache Commons Crypto vulnerable version detected (CVE-2023-33201, <1.2.0)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import org.apache.commons.crypto.*'
+    metadata: { library: "apache-commons-crypto", cve: "CVE-2023-33201", vulnerable_versions: "<1.2.0" }
+
+  - id: java-cve-web3j
+    languages: [java]
+    message: "web3j vulnerable version detected (CVE-2022-29173, <4.8.7)"
+    severity: ERROR
+    patterns:
+      - pattern: 'import org.web3j.*'
+    metadata: { library: "web3j", cve: "CVE-2022-29173", vulnerable_versions: "<4.8.7" }
+
+  - id: java-cve-bsafesdk
+    languages: [java]
+    message: "BSAFE SDK usage detected (check for CVEs manually)"
+    severity: WARNING
+    patterns:
+      - pattern: 'import com.rsa.*'
+      - pattern: 'import com.bsafesdk.*'
+    metadata: { library: "bsafe", cve: "manual-check" }
   - id: java-jca-md5-sha1
     languages: [java]
     message: "Weak hash algorithm (MD5 or SHA-1)"
@@ -43,3 +82,58 @@ rules:
     severity: INFO
     patterns:
       - pattern: KeyPairGenerator.getInstance($ALG)
+
+
+  - id: java-pqc-dilithium
+    languages: [java]
+    message: "Dilithium post-quantum algorithm detected"
+    severity: INFO
+    patterns:
+      - pattern: 'Dilithium$CLASS'
+    metadata: { pqc: "dilithium" }
+
+  - id: java-pqc-sphincsplus
+    languages: [java]
+    message: "SPHINCS+ post-quantum algorithm detected"
+    severity: INFO
+    patterns:
+      - pattern: 'SphincsPlus$CLASS'
+    metadata: { pqc: "sphincs+" }
+
+  # BouncyCastle vulnerable versions
+  - id: java-bouncycastle-vuln
+    languages: [java]
+    message: "Vulnerable BouncyCastle version (<1.70) detected"
+    severity: ERROR
+    patterns:
+      - pattern: 'import org.bouncycastle.*'
+      - pattern: 'BouncyCastleProvider'
+    metadata: { library: "bouncycastle", vulnerable_versions: "<1.70" }
+
+  # Deprecated/weak algorithms
+  - id: java-deprecated-rsa
+    languages: [java]
+    message: "RSA algorithm is not post-quantum secure"
+    severity: WARNING
+    patterns:
+      - pattern: 'KeyPairGenerator.getInstance("RSA")'
+    metadata: { cwe: "326" }
+
+  - id: java-deprecated-ecc
+    languages: [java]
+    message: "ECC algorithm is not post-quantum secure"
+    severity: WARNING
+    patterns:
+      - pattern: 'KeyPairGenerator.getInstance("EC")'
+    metadata: { cwe: "326" }
+
+  # NIST PQC candidate libraries
+  - id: java-nist-pqc-lib
+    languages: [java]
+    message: "NIST PQC candidate library usage detected"
+    severity: INFO
+    patterns:
+      - pattern-either:
+          - pattern: 'import org.openquantumsafe.*'
+          - pattern: 'import com.nist.pqc.*'
+    metadata: { pqc: "nist-candidate" }

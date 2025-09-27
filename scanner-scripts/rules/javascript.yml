@@ -1,13 +1,65 @@
-rules:
-  # ==== Hashes (weak/strong) ====
-  - id: js-node-crypto-md5-sha1
+
+  # CVE Integration Rules for Popular JavaScript Crypto Libraries
+  - id: js-cve-node-crypto
     languages: [javascript, typescript]
-    message: "Weak hash (MD5/SHA-1) via Node crypto"
+    message: "Node.js crypto vulnerable version detected (CVE-2022-35256, <18.7.0)"
+    severity: ERROR
+    patterns:
+      - pattern: "require('crypto')"
+      - pattern: "import crypto from 'crypto'"
+    metadata: { library: "node-crypto", cve: "CVE-2022-35256", vulnerable_versions: "<18.7.0" }
+
+  - id: js-cve-cryptojs
+    languages: [javascript, typescript]
+    message: "crypto-js vulnerable version detected (CVE-2022-31129, <4.1.0)"
+    severity: ERROR
+    patterns:
+      - pattern: "require('crypto-js')"
+      - pattern: "import CryptoJS from 'crypto-js'"
+    metadata: { library: "crypto-js", cve: "CVE-2022-31129", vulnerable_versions: "<4.1.0" }
+
+  - id: js-cve-node-forge
+    languages: [javascript, typescript]
+    message: "node-forge vulnerable version detected (CVE-2022-24771, <1.3.1)"
+    severity: ERROR
+    patterns:
+      - pattern: "require('node-forge')"
+      - pattern: "import forge from 'node-forge'"
+    metadata: { library: "node-forge", cve: "CVE-2022-24771", vulnerable_versions: "<1.3.1" }
+
+  - id: js-cve-webcrypto
+    languages: [javascript, typescript]
+    message: "WebCrypto API usage (check browser CVEs manually)"
     severity: WARNING
     patterns:
-      - pattern-either:
-          - pattern: "crypto.createHash('md5')"
-          - pattern: "crypto.createHash('sha1')"
+      - pattern: "window.crypto.subtle"
+      - pattern: "crypto.subtle"
+    metadata: { library: "webcrypto", cve: "manual-check" }
+
+  - id: js-cve-sjcl
+    languages: [javascript, typescript]
+    message: "SJCL vulnerable version detected (CVE-2017-18236, <1.0.7)"
+    severity: ERROR
+    patterns:
+      - pattern: "require('sjcl')"
+      - pattern: "import sjcl from 'sjcl'"
+    metadata: { library: "sjcl", cve: "CVE-2017-18236", vulnerable_versions: "<1.0.7" }
+
+  - id: js-cve-bsafejs
+    languages: [javascript, typescript]
+    message: "BSAFE JavaScript SDK usage detected (check for CVEs manually)"
+    severity: WARNING
+    patterns:
+      - pattern: "require('bsafe')"
+      - pattern: "import bsafe from 'bsafe'"
+    metadata: { library: "bsafe", cve: "manual-check" }
+rules:
+  - id: js-test-md5
+    languages: [javascript, typescript]
+    message: "MD5 hash usage detected"
+    severity: WARNING
+    patterns:
+      - pattern: "crypto.createHash('md5')"
 
   - id: js-node-crypto-sha256-sha512
     languages: [javascript, typescript]

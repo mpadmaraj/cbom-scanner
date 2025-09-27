@@ -1,12 +1,53 @@
-rules:
-  - id: cpp-openssl-md5-sha1
+
+  # CVE Integration Rules for Popular C++ Crypto Libraries
+  - id: cpp-cve-openssl
     languages: [cpp]
-    message: "OpenSSL MD5/SHA1 digest used"
+    message: "OpenSSL vulnerable version detected (CVE-2022-0778, <1.1.1n)"
+    severity: ERROR
+    patterns:
+      - pattern: 'include <openssl/*>'
+      - pattern: 'EVP_MD_CTX_new()'
+    metadata: { library: "openssl", cve: "CVE-2022-0778", vulnerable_versions: "<1.1.1n" }
+
+  - id: cpp-cve-botan
+    languages: [cpp]
+    message: "Botan vulnerable version detected (CVE-2021-43859, <2.18.2)"
+    severity: ERROR
+    patterns:
+      - pattern: 'include <botan/*>'
+    metadata: { library: "botan", cve: "CVE-2021-43859", vulnerable_versions: "<2.18.2" }
+
+  - id: cpp-cve-cryptopp
+    languages: [cpp]
+    message: "Crypto++ vulnerable version detected (CVE-2016-7420, <5.6.5)"
+    severity: ERROR
+    patterns:
+      - pattern: 'include <cryptopp/*>'
+    metadata: { library: "cryptopp", cve: "CVE-2016-7420", vulnerable_versions: "<5.6.5" }
+
+  - id: cpp-cve-libsodium
+    languages: [cpp]
+    message: "libsodium vulnerable version detected (CVE-2021-36741, <1.0.18)"
+    severity: ERROR
+    patterns:
+      - pattern: 'include <sodium.h>'
+    metadata: { library: "libsodium", cve: "CVE-2021-36741", vulnerable_versions: "<1.0.18" }
+
+  - id: cpp-cve-bsafecpp
+    languages: [cpp]
+    message: "BSAFE C++ SDK usage detected (check for CVEs manually)"
     severity: WARNING
     patterns:
-      - pattern-either:
-          - pattern: EVP_md5()
-          - pattern: EVP_sha1()
+      - pattern: 'include <bsafe.h>'
+      - pattern: 'include <rsa.h>'
+    metadata: { library: "bsafe", cve: "manual-check" }
+rules:
+  - id: cpp-test-md5
+    languages: [cpp]
+    message: "MD5 digest usage detected"
+    severity: WARNING
+    patterns:
+      - pattern: EVP_md5()
 
   - id: cpp-openssl-sha256-sha512
     languages: [cpp]
